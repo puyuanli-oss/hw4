@@ -137,7 +137,12 @@ protected:
     virtual void nodeSwap( AVLNode<Key,Value>* n1, AVLNode<Key,Value>* n2);
 
     // Add helper functions here
-
+private:
+    int height(AVLNode<Key, Value>* node) const;
+    void fixBalance(AVLNode<Key, Value>* node);
+    AVLNode<Key, Value>* rotateLeft(AVLNode<Key, Value>* x);
+    AVLNode<Key, Value>* rotateRight(AVLNode<Key, Value>* y);
+    AVLNode<Key, Value>* rebalanceSubtree(AVLNode<Key, Value>* node);
 
 };
 
@@ -149,6 +154,40 @@ template<class Key, class Value>
 void AVLTree<Key, Value>::insert (const std::pair<const Key, Value> &new_item)
 {
     // TODO
+        if (this->root_ == nullptr) {
+        this->root_ = new AVLNode<Key, Value>(new_item.first, new_item.second, nullptr);
+        return;
+    }
+
+    Node<Key, Value>* cur = this->root_;
+    Node<Key, Value>* parent = nullptr;
+
+    while (cur != nullptr) {
+        parent = cur;
+        if (new_item.first < cur->getKey()) {
+            cur = cur->getLeft();
+        } else if (new_item.first > cur->getKey()) {
+            cur = cur->getRight();
+        } else {
+            cur->getValue() = new_item.second;
+            return;
+        }
+
+    AVLNode<Key, Value>* newNode =
+        new AVLNode<Key, Value>(new_item.first, new_item.second,
+                                static_cast<AVLNode<Key, Value>*>(parent));
+
+    if (new_item.first < parent->getKey()) {
+        parent->setLeft(newNode);
+    } else {
+        parent->setRight(newNode);
+    }
+
+    this->root_ = rebalanceSubtree(static_cast<AVLNode<Key, Value>*>(this->root_));
+    if (this->root_ != nullptr) {
+        this->root_->setParent(nullptr);
+    }
+    }
 }
 
 /*
@@ -159,6 +198,12 @@ template<class Key, class Value>
 void AVLTree<Key, Value>:: remove(const Key& key)
 {
     // TODO
+  BinarySearchTree<Key, Value>::remove(key);
+
+    if (this->root_ != nullptr) {
+        this->root_ = rebalanceSubtree(static_cast<AVLNode<Key, Value>*>(this->root_));
+        this->root_->setParent(nullptr);
+    }
 }
 
 template<class Key, class Value>
@@ -172,3 +217,4 @@ void AVLTree<Key, Value>::nodeSwap( AVLNode<Key,Value>* n1, AVLNode<Key,Value>* 
 
 
 #endif
+
